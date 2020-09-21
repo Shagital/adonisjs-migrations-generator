@@ -76,7 +76,7 @@ class Test extends Command {
       order by col.table_schema, col.table_name, col.ordinal_position
       `);
 
-      let indexes = await this.database.raw(`SHOW INDEX FROM ${tableName} FROM ${this.dbName}`);
+      let indexes = await this.database.raw("SHOW INDEX FROM `"+tableName+"` FROM `"+this.dbName+"`");
       Object.keys(tableColumns[0]).forEach(key => {
         let tableColumn = tableColumns[0][key];
        this.tables[tableName][tableColumn.COLUMN_NAME] = tableColumn;
@@ -123,10 +123,32 @@ class Test extends Command {
     return string.charAt(0).toUpperCase() + string.slice(1);
   }
 
+  snakeToPascal( str ){
+    str +='';
+    str = str.split('_');
+
+    function upper( str ){
+      return str.slice(0,1).toUpperCase() + str.slice(1,str.length);
+    }
+
+
+    for(var i=0;i<str.length;i++){
+      var str2 = str[i].split('/');
+      for(var j=0;j<str2.length;j++){
+        str2[j] = upper(str2[j]);
+      }
+      str[i] = str2.join('');
+    }
+    return str.join('');
+  }
+
   async generateMigrationContent(tableName) {
     this.info(`Generating migration file for table: ${tableName}`);
+
     let contents = await this.readFile(__dirname+'/migration.js.stub', 'utf-8');
     let columnString = this.generateColumns(this.tables[tableName]);
+
+    let pascalTableName = this.snakeToPascal(tableName);
 
     contents = contents
       .replace(new RegExp(`{{disableforeignKeyConstraint}}`, 'g'),this.disableForeignKeyConstriant
@@ -140,7 +162,7 @@ class Test extends Command {
         : ``
       )
       .replace(new RegExp(`{{tableName}}`, 'g'), `'${tableName}'`)
-      .replace(new RegExp(`{{pascalTableName}}`, 'g'), `${this.capitalizeFirstLetter(tableName)}`)
+      .replace(new RegExp(`{{pascalTableName}}`, 'g'), `${pascalTableName}`)
       .replace('{{columns}}', columnString)
       .replace('{{setConnection}}', this.connection
         ? `
