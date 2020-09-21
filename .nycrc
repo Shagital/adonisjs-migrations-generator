@@ -1,0 +1,6 @@
+{
+  "all": true,
+  "include": ["app/**"],
+  "reporter": "html",
+  "report-dir": "test/coverage"
+}
