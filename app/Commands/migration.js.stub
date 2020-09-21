@@ -6,7 +6,7 @@ const Database = use('Database');
 
 class {{pascalTableName}}Schema extends Schema {
 {{setConnection}}
-  async up () {
+  up () {
   {{disableforeignKeyConstraint}}
     this.create({{tableName}}, (table) => {
     {{columns}}
@@ -14,7 +14,7 @@ class {{pascalTableName}}Schema extends Schema {
     {{enableforeignKeyConstraint}}
   }
 
-  async down () {
+  down () {
   {{disableforeignKeyConstraint}}
     this.dropIfExists({{tableName}});
     {{enableforeignKeyConstraint}}
