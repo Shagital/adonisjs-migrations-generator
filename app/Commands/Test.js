@@ -4,6 +4,7 @@ const { Command } = require('@adonisjs/ace');
 const Database = use('Database');
 const Env = use('Env');
 const Helpers = use('Helpers');
+const {random} = use('App/Common/helpers');
 
 class Test extends Command {
   constructor() {
@@ -24,6 +25,8 @@ class Test extends Command {
             { --exclude=@value : comma-separated name of the table(s) to  exclude from migrations }
             { --connection=@value : DB connection to use }
             { --disable-fkc : DB connection to use }
+            { --force : Overwrite existing migration folder}
+            { --path=@value : Directory to save migration files}
             `
   }
 
@@ -93,8 +96,8 @@ class Test extends Command {
     this.connection = connection;
     this.database = Database.connection(this.connection || Env.get('DB_CONNECTION'));
     this.info(`Using DB Connection: ${this.connection || Env.get('DB_CONNECTION')}`);
-      let query = await this.database.raw('SELECT DATABASE()');
-      this.dbName = query[0][0]['DATABASE()'];
+    let query = await this.database.raw('SELECT DATABASE()');
+    this.dbName = query[0][0]['DATABASE()'];
     this.info(`DB Name: ${this.dbName}`);
     return this;
   }
@@ -104,6 +107,14 @@ class Test extends Command {
     this.disableForeignKeyConstriant = this.flags['disableFkc'] === null
       ? true
       : this.flags['disableFkc'];
+
+    if (this.flags.path) {
+      let pathExist = !this.pathExists(this.flags.path);
+      if (!pathExist) {
+        this.error(`Path ${this.flags.path} does not exist`);
+        return;
+      }
+    }
     this.disableForeignKeyConstriant && this.warn(`Foreign key constraint disabled!`);
     this.args = args;
     this.info('Starting...');
@@ -111,16 +122,15 @@ class Test extends Command {
     await this.getTables();
     await this.tableColumns();
 
-    // console.log(this.tables);
+    // console.log(this.tables['model_has_permissions']['model_id']);
     // process.exit()
 
+    if (this.flags.force) {
+      await this.removeDir(Helpers.databasePath(`migrations`));
+    }
     Object.keys(this.tables).forEach(tableName => {
       this.generateMigrationContent(tableName);
     });
-  }
-
-  capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
   }
 
   snakeToPascal( str ){
@@ -151,14 +161,15 @@ class Test extends Command {
     let pascalTableName = this.snakeToPascal(tableName);
 
     contents = contents
-      .replace(new RegExp(`{{disableforeignKeyConstraint}}`, 'g'),this.disableForeignKeyConstriant
-        ? `Database.raw("SET FOREIGN_KEY_CHECKS=0").then( () => {`
+      .replace(new RegExp(`{{disableforeignKeyConstraint}}`, 'g'), this.disableForeignKeyConstriant
+        ? `Promise.all([
+        Database.raw("SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS;"),
+        Database.raw("SET FOREIGN_KEY_CHECKS=0;")
+        ]).then( () => {`
         : ``
       )
-      .replace(new RegExp(`{{enableforeignKeyConstraint}}`, 'g'),this.disableForeignKeyConstriant
-        ? `}).finally(function () {
-      return Database.raw('SET FOREIGN_KEY_CHECKS=1;');
-    });`
+      .replace(new RegExp(`{{enableforeignKeyConstraint}}`, 'g'), this.disableForeignKeyConstriant
+        ? `});`
         : ``
       )
       .replace(new RegExp(`{{tableName}}`, 'g'), `'${tableName}'`)
@@ -171,35 +182,39 @@ class Test extends Command {
   }
       ` : ``);
 
-
-    let migrationPath = Helpers.databasePath(`migrations/${new Date().getTime()}_${tableName}.js`);
+    let path = this.flags.path || Helpers.databasePath(`migrations`);
+    let migrationPath = `${path}/${new Date().getTime()}_${tableName}.js`;
     await this.writeFile(migrationPath, contents);
     this.info(`Migration file saved to: ${migrationPath}`);
-    }
+  }
 
     generateColumns(columns) {
       let columnString = "\t\t\t";
+      let columnIndexes = {};
       Object.keys(columns).forEach(columnName => {
         let column = columns[columnName];
         let indexes = column['indexes'];
+        for (let index of indexes) {
+          columnIndexes[index['Key_name']] = columnIndexes[index['Key_name']] || [];
+          columnIndexes[index['Key_name']].push(index['Column_name']);
+        }
         let columnType = column['COLUMN_TYPE'].split(' ')[1];
-        switch(column['DATA_TYPE']) {
+        switch (column['DATA_TYPE']) {
           case 'timestamp':
             columnString += `table.timestamp('${column['COLUMN_NAME']}')`;
-            if(column['COLUMN_DEFAULT:'] === 'CURRENT_TIMESTAMP') {
+            if (column['COLUMN_DEFAULT:'] === 'CURRENT_TIMESTAMP') {
               columnString += `.defaultTo(knex.fn.now())`
             }
             break;
           case 'int':
-           columnString +=  column['EXTRA'] === 'auto_increment'
-             ? `table.increments('${column['COLUMN_NAME']}')`
-             : `table.integer('${column['COLUMN_NAME']}')`;
+          case 'tinyint':
+          case 'bigint':
+            columnString += column['EXTRA'] === 'auto_increment'
+              ? `table.increments('${column['COLUMN_NAME']}')`
+              : `table.integer('${column['COLUMN_NAME']}', ${column['NUMERIC_PRECISION']})`;
             break;
           case 'varchar':
             columnString += `table.string('${column['COLUMN_NAME']}', ${column['CHARACTER_MAXIMUM_LENGTH']})`;
-            break;
-            case 'tinyint':
-            columnString += `table.integer('${column['COLUMN_NAME']}', ${column['NUMERIC_PRECISION']})`;
             break;
           case 'decimal':
             columnString += `table.decimal('${column['COLUMN_NAME']}', ${column['NUMERIC_PRECISION']}, ${column['NUMERIC_SCALE']})`;
@@ -219,18 +234,23 @@ class Test extends Command {
         //handle foreign key constraint
         let referenceTable = (column['primary_table'] || '').split('.')[1];
         let primaryKeyColumn = column['pk_column_name'];
-        if(referenceTable && primaryKeyColumn) {
-          columnString += `.references('${primaryKeyColumn}').inTable('${referenceTable}')`
+        if (referenceTable && primaryKeyColumn) {
+          columnString += `.references('${primaryKeyColumn}').inTable('${referenceTable}').withKeyName('${column['TABLE_NAME'].substr(-20)}_${column['COLUMN_NAME']}_${random(8, true)}')`;
         }
         columnString += columnType === 'unsigned' ? `.unsigned()` : ``;
         columnString += column['COLUMN_KEY'] === 'UNI' ? `.unique()` : ``;
-        columnString += (indexes.find(s => s['Key_name'] === column['COLUMN_NAME'] ) ? `.index()` : ``);
-        columnString += column['COLUMN_DEFAULT'] ?  `.defaultTo(${column['COLUMN_DEFAULT'] === 'CURRENT_TIMESTAMP' ? `Database.fn.now()` : `'${column['COLUMN_DEFAULT']}'`})` : ``;
+        columnString += column['COLUMN_DEFAULT'] ? `.defaultTo(${column['COLUMN_DEFAULT'] === 'CURRENT_TIMESTAMP' ? `Database.fn.now()` : `'${column['COLUMN_DEFAULT']}'`})` : ``;
         columnString += column['IS_NULLABLE'] === 'NO' ? `` : `.nullable()`;
         columnString += `;\n\t\t\t\t\t`;
       });
 
+      Object.keys(columnIndexes).forEach(key => {
+        if (key !== 'PRIMARY') {
+          columnString += `\n\t\t\t\t\ttable.index(['${columnIndexes[key].join("','")}'], '${key.substr(-20)}_${random(8, true)}');`;
+        }
+      });
       return columnString;
+
     }
 }
 
