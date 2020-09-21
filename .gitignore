@@ -19,3 +19,4 @@ tmp/caches
 database/*.sqlite
 database/*.sqlite-journal
 tmp/*.log
+database/migrations

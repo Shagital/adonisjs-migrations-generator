@@ -235,7 +235,7 @@ class Test extends Command {
         let referenceTable = (column['primary_table'] || '').split('.')[1];
         let primaryKeyColumn = column['pk_column_name'];
         if (referenceTable && primaryKeyColumn) {
-          columnString += `.references('${primaryKeyColumn}').inTable('${referenceTable}').withKeyName('${column['TABLE_NAME'].substr(-20)}_${column['COLUMN_NAME']}_${random(8, true)}')`;
+          columnString += `.references('${primaryKeyColumn}').inTable('${referenceTable}').withKeyName('${column['TABLE_NAME'].substr(-30)}_${column['COLUMN_NAME']}_${random(2, true)}')`;
         }
         columnString += columnType === 'unsigned' ? `.unsigned()` : ``;
         columnString += column['COLUMN_KEY'] === 'UNI' ? `.unique()` : ``;
@@ -246,7 +246,7 @@ class Test extends Command {
 
       Object.keys(columnIndexes).forEach(key => {
         if (key !== 'PRIMARY') {
-          columnString += `\n\t\t\t\t\ttable.index(['${columnIndexes[key].join("','")}'], '${key.substr(-20)}_${random(8, true)}');`;
+          columnString += `\n\t\t\t\t\ttable.index(['${columnIndexes[key].join("','")}'], '${key.substr(-30)}_${random(2, true)}');`;
         }
       });
       return columnString;
