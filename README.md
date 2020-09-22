@@ -20,7 +20,9 @@ yarn add @shagital/adonisjs-migrations-generator
 ```
 
 ### Usage
-Note that you can replace the `adonis` with `node ace` if adonis is not installed globally on your system.
+Open `start/app.js` and add `@shagital/adonisjs-migrations-generator/src/Command/MigrationsGeneratorCommand` to the commands array
+
+- Note that you can replace the `adonis` with `node ace` if adonis is not installed globally on your system.
 
 #### Basic usage
 Will generate migration files for all tables in the DB set as default, and save files in `databases/migrations` directory
