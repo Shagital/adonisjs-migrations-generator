@@ -6,13 +6,14 @@ const Database = use('Database');
 const Env = use('Env');
 const Config = use('Config');
 const Mysql = require(`${__dirname}/../Databases/Mysql`);
+const Sqlite = require(`${__dirname}/../Databases/Sqlite`);
 const Helpers = use('Helpers');
 
 class MigrationsGeneratorCommand extends Command {
   constructor() {
     super();
     this.dbType = null;
-    this.supportedTypes = ['mysql', 'sqlite'];
+    this.supportedTypes = ['mysql', 'sqlite3'];
     this.migrationTables = ['adonis_schema', 'migrations'];
   }
 
@@ -77,7 +78,11 @@ class MigrationsGeneratorCommand extends Command {
     switch (this.dbType) {
       case 'mysql':
         dbClass = new Mysql(flags);
+        break;
+      case 'sqlite3':
+        dbClass = new Sqlite(flags);
     }
+
 
     await dbClass.connectDb();
     await dbClass.getTables();
