@@ -1,68 +1,30 @@
 {
-  "name": "feedback-monkey",
-  "version": "0.1.1",
-  "adonis-version": "4.1.0",
-  "description": "Backend application for the feedmonkey application",
-  "main": "server.js",
+  "name": "@shagital/migrations-generator",
+  "version": "1.0.0",
+  "description": "An AdonisJS (nodejs) package to generate migration files from existing DB tables",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "test": "nyc node ace test",
-    "migrate": "nyc node ace migration:run",
-    "seed": "nyc node ace seed",
-    "migrate-seed": "nyc node ace migration:run --seed"
+    "test": "jest"
   },
   "keywords": [
     "adonisjs",
-    "adonis-app"
+    "node",
+    "migrations",
+    "mysql",
+    "postgresql",
+    "mongodb",
+    "sqlite"
   ],
-  "author": "",
-  "license": "UNLICENSED",
-  "private": true,
-  "dependencies": {
-    "@adonisjs/ace": "^5.0.8",
-    "@adonisjs/ally": "^2.1.3",
-    "@adonisjs/auth": "^3.0.7",
-    "@adonisjs/bodyparser": "^2.0.5",
-    "@adonisjs/cors": "^1.0.7",
-    "@adonisjs/drive": "^1.0.4",
-    "@adonisjs/fold": "^4.0.9",
-    "@adonisjs/framework": "^5.0.9",
-    "@adonisjs/ignitor": "^2.0.8",
-    "@adonisjs/lucid": "^6.1.4",
-    "@adonisjs/mail": "^3.0.10",
-    "@adonisjs/session": "^1.0.29",
-    "@adonisjs/validator": "^5.0.6",
-    "@adonisjs/vow": "^1.0.17",
-    "@adonisjs/websocket": "^1.0.12",
-    "@node-minify/babel-minify": "^6.0.0",
-    "@node-minify/core": "^6.0.0",
-    "@node-minify/uglify-js": "^6.0.0",
-    "@radmen/adonis-lucid-soft-deletes": "^0.2.0",
-    "adonis-4-cloudinary": "^1.0.2",
-    "adonisjs-bugsnag": "^0.2.0",
-    "express": "^4.17.1",
-    "express-useragent": "^1.0.15",
-    "flutterwave-node": "^1.2.0",
-    "g": "^2.0.1",
-    "install": "^0.13.0",
-    "moment": "^2.27.0",
-    "mysql": "^2.18.1",
-    "ngrok": "^3.2.7",
-    "node-fetch": "^2.6.0",
-    "nodemon": "^2.0.4",
-    "npm": "^6.14.6",
-    "nyc": "^15.1.0",
-    "request": "^2.88.2",
-    "url-parse": "^1.4.7"
-  },
+  "author": "Zacchaeus Bolaji <zacchaeus@shagital.com>",
+  "license": "MIT",
   "devDependencies": {
-    "node-mocks-http": "^1.8.1",
-    "sqlite3": "^5.0.0"
+    "jest": "^26.4.2"
   },
-  "autoload": {
-    "App": "./app"
+  "dependencies": {
   },
-  "engines": {
-    "node": "12.18.3"
-  }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shagital/adonisjs-migrations-generator.git"
+  },
+  "homepage": "https://github.com/Shagital/adonisjs-migrations-generator"
 }

@@ -7,16 +7,4 @@ node_modules
 
 # Adonis directory for storing tmp files
 .nyc_output
-
-# Environment variables, never commit this file
-.env
-.env.testing
-.env.production
-public/docs
-tmp/caches
-
-# The development sqlite file
-database/*.sqlite
-database/*.sqlite-journal
-tmp/*.log
-database/migrations
+yarn.lock
