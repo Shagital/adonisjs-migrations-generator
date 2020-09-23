@@ -8,11 +8,11 @@
   },
   "keywords": [
     "adonisjs",
-    "node",
+    "nodejs",
     "migrations",
+    "generator",
     "mysql",
     "postgresql",
-    "mongodb",
     "sqlite"
   ],
   "author": "Zacchaeus Bolaji <zacchaeus@shagital.com>",
