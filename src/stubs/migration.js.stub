@@ -2,6 +2,7 @@
 
 /** @type {import('@adonisjs/lucid/src/Schema')} */
 const Schema = use('Schema');
+/** @type {import('@adonisjs/lucid/src/Database')} */
 const Database = use('Database');
 
 class {{pascalTableName}}Schema extends Schema {

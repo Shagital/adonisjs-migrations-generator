@@ -68,7 +68,56 @@ adonis migration:generate --force
 ```bash
 adonis migration:generate --disable-fkc
 ```
+## Example Migration file
+```js
+'use strict';
 
+/** @type {import('@adonisjs/lucid/src/Schema')} */
+const Schema = use('Schema');
+/** @type {import('@adonisjs/lucid/src/Database')} */
+const Database = use('Database');
+
+class UsersSchema extends Schema {
+
+  static get connection() {
+    return 'mysql'
+  }
+
+  up() {
+    return Promise.all([
+      Database.raw("SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS;"),
+      Database.raw("SET FOREIGN_KEY_CHECKS=0;")
+    ]).then(() => {
+      this.create('users', (table) => {
+        table.increments('id').unsigned();
+        table.string('username', 80).unique();
+        table.string('first_name', 80).nullable();
+        table.string('last_name', 80).nullable();
+        table.string('email', 100).unique();
+        table.string('password', 255);
+        table.timestamp('deleted_at').nullable();
+        table.timestamp('created_at').defaultTo(Database.fn.now());
+        table.timestamp('updated_at').defaultTo(Database.fn.now());
+
+        table.index(['username'], 'users_username_unique_22');
+        table.index(['email'], 'users_email_unique_76');
+      });
+    });
+  }
+
+  down() {
+    return Promise.all([
+      Database.raw("SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS;"),
+      Database.raw("SET FOREIGN_KEY_CHECKS=0;")
+    ]).then(() => {
+      this.dropIfExists('users');
+    });
+  }
+}
+
+module.exports = UsersSchema
+
+```
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.

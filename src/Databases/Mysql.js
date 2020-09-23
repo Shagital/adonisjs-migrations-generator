@@ -108,9 +108,6 @@ class MySql extends MigrationGenerator {
       switch (column['DATA_TYPE']) {
         case 'timestamp':
           columnString += `table.timestamp('${column['COLUMN_NAME']}')`;
-          if (column['COLUMN_DEFAULT'] === 'CURRENT_TIMESTAMP') {
-            columnString += `.defaultTo(knex.fn.now())`
-          }
           break;
         case 'int':
         case 'tinyint':

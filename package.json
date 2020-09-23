@@ -1,6 +1,6 @@
 {
   "name": "@shagital/adonisjs-migrations-generator",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "An AdonisJS (nodejs) package to generate migration files from existing DB tables",
   "main": "index.js",
   "scripts": {
