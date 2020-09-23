@@ -29,7 +29,6 @@ class MigrationsGenerator {
         let contents = vm.generateMigrationContent(tableName);
         let migrationPath = `${vm.path}/${new Date().getTime()}_${tableName}.js`;
 
-
         fs.writeFile(migrationPath, contents, function (err) {
           if (err) {
             return console.error('Write Error:', err);
@@ -38,6 +37,11 @@ class MigrationsGenerator {
         });
       });
     });
+  }
+
+
+  getStringBetween(str, start, end) {
+    return str.match(new RegExp(start+"(.*)"+end))[0];
   }
 
   snakeToPascal(str) {

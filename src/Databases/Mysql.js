@@ -1,6 +1,6 @@
 const MigrationGenerator = require(`${__dirname}/../MigrationsGenerator`);
 
-class Mysql extends MigrationGenerator {
+class MySql extends MigrationGenerator {
   constructor(props) {
     super(props);
     this.dbType = props.dbType;
@@ -160,4 +160,4 @@ class Mysql extends MigrationGenerator {
   }
 }
 
-module.exports = Mysql;
+module.exports = MySql;

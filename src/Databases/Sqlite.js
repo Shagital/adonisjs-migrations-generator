@@ -1,7 +1,7 @@
 const MigrationGenerator = require(`${__dirname}/../MigrationsGenerator`);
 const Config = use('Config');
 
-class Sqlite extends MigrationGenerator {
+class SQLite extends MigrationGenerator {
   constructor(props) {
     super(props);
     this.dbType = props.dbType;
@@ -34,9 +34,9 @@ class Sqlite extends MigrationGenerator {
   async tableColumns() {
     let tables = this.tables;
     for (let tableName in tables) {
-      let tableColumns = await this.database.raw(`PRAGMA table_info(${tableName});`);
+      let tableColumns = await this.database.raw(`PRAGMA table_info('${tableName}');`);
 
-      let indexes = await this.database.raw(`PRAGMA index_list(${tableName})`);
+      let indexes = await this.database.raw(`PRAGMA index_list('${tableName}')`);
 
       Object.keys(tableColumns).forEach(key => {
         let tableColumn = tableColumns[key];
@@ -79,36 +79,51 @@ class Sqlite extends MigrationGenerator {
   generateColumns(columns) {
     let columnString = "\t\t\t";
     let columnIndexes = {};
+
+    // console.log(JSON.stringify(columns, null, 4));
+    // process.exit()
     Object.keys(columns).forEach(columnName => {
       let column = columns[columnName];
       let indexes = column['indexes'];
       let splitCol = column['type'].split('(');
-      let columnType = splitCol[0];
-      let columnLength = (splitCol[1] || '').split(')')[0];
+      let columnType = splitCol[0].toLowerCase();
+      let columnLength = this.getStringBetween(column['type'], '(', ')');
+      let maxLength = this.getStringBetween(column['type'], '(', ',')
+      let decimalPlaces = this.getStringBetween(column['type'], ',', ')')
       switch (columnType) {
         case 'datetime':
           columnString += `table.timestamp('${column['name']}')`;
           break;
         case 'integer':
+        case 'numeric':
+        case 'tinyint':
           columnString += column['pk'] === 1
             ? `table.increments('${column['name']}')`
-            : `table.integer('${column['name']}')`;
+            : (
+              maxLength && decimalPlaces
+                ? `table.decimal('${column['name']}', ${maxLength}, ${decimalPlaces})`
+                : `table.integer('${column['name']}')`
+            );
           break;
         case 'varchar':
-          let length = columnType.split(')')[0]
-          columnString += `table.string('${column['name']}', ${columnLength})`;
-          break;
-        case 'decimal':
-          columnString += `table.decimal('${column['name']}')`;
+          columnString += `table.string('${column['name']}'${columnLength ? `,${columnLength}` : ``})`;
           break;
         case 'text':
           columnString += `table.text('${column['name']}')`;
+          break;
+        case 'datetime':
+          columnString += `table.datetime('${column['name']}')`;
+          break;
+        case 'boolean':
+          columnString += `table.boolean('${column['name']}')`;
           break;
         default:
           columnString += `table.specificType('${column['name']}', '${columnType}')`;
       }
       //handle foreign key constraint
+      columnString += column['pk'] == 1 ? `.primary()` : ``;
       columnString += indexes.find(s => s['unique'] == 1) ? `.unique()` : ``;
+      columnString += indexes.find(s => s['name'].split('_').slice(-1)[0] == 'index') ? `.index()` : ``;
       columnString += column['dflt_value'] ? `.defaultTo(${column['dflt_value'] === 'CURRENT_TIMESTAMP' ? `Database.fn.now()` : `${column['dflt_value']}`})` : ``;
       columnString += column['notnull'] === 1 ? `` : `.nullable()`;
       columnString += `;\n\t\t\t\t\t`;
@@ -119,4 +134,4 @@ class Sqlite extends MigrationGenerator {
   }
 }
 
-module.exports = Sqlite;
+module.exports = SQLite;

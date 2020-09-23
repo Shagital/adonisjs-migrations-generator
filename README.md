@@ -3,11 +3,12 @@
 ![npm (scoped)](https://img.shields.io/npm/v/@shagital/adonisjs-migrations-generator)
 ![NPM](https://img.shields.io/npm/l/@shagital/adonisjs-migrations-generator)
 
-This package allows you easily generate migration files for your adonisJS app from an existing Database, including indexes and foreign keys!
+This package allows you easily generate migration files for your [AdonisJS](https://adonisjs.com/) app from an existing Database, including indexes and foreign keys!
 
-## Curently Supported
+## Currently Supported
 - MySQL
 - SQLite
+- PostgreSQL
 
 ## Installation
 
@@ -62,7 +63,8 @@ adonis migration:generate --force
 ```
 
 ### Disable foreign key constraint in migration files
->[MySQL/PostgreSQL] Because we're generating migrations are being generated from an existing DB, when you run the migration, you might run into foreign key constraint errors because tables might not be created before been referenced in another table. This option adds a command to disable foreign key check so your migrations can run smoothly
+>[MySQL] Because we're generating migrations are being generated from an existing DB, when you run the migration, you might run into foreign key constraint errors because tables might not be created before been referenced in another table. This option adds a command to disable foreign key check so your migrations can run smoothly
+
 ```bash
 adonis migration:generate --disable-fkc
 ```

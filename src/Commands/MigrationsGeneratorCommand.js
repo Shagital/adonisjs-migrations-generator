@@ -5,15 +5,16 @@ const {Command} = require('@adonisjs/ace');
 const Database = use('Database');
 const Env = use('Env');
 const Config = use('Config');
-const Mysql = require(`${__dirname}/../Databases/Mysql`);
-const Sqlite = require(`${__dirname}/../Databases/Sqlite`);
+const MySql = require(`${__dirname}/../Databases/MySql`);
+const SQLite = require(`${__dirname}/../Databases/SQLite`);
+const PostgreSql = require(`${__dirname}/../Databases/PostgreSql`);
 const Helpers = use('Helpers');
 
 class MigrationsGeneratorCommand extends Command {
   constructor() {
     super();
     this.dbType = null;
-    this.supportedTypes = ['mysql', 'sqlite3'];
+    this.supportedTypes = ['mysql', 'sqlite3', 'pg'];
     this.migrationTables = ['adonis_schema', 'migrations'];
   }
 
@@ -77,10 +78,13 @@ class MigrationsGeneratorCommand extends Command {
     flags.dbType = this.dbType;
     switch (this.dbType) {
       case 'mysql':
-        dbClass = new Mysql(flags);
+        dbClass = new MySql(flags);
         break;
       case 'sqlite3':
-        dbClass = new Sqlite(flags);
+        dbClass = new SQLite(flags);
+        break;
+      case 'pg':
+        dbClass = new PostgreSql(flags);
     }
 
 
